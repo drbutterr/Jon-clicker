@@ -1,0 +1,257 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Jon Clicker</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#121212;
+color:white;
+text-align:center;
+}
+
+#jon{
+width:250px;
+cursor:pointer;
+transition:transform .1s;
+}
+
+#jon:active{
+transform:scale(.9);
+}
+
+.shop{
+display:flex;
+justify-content:center;
+gap:50px;
+margin-top:20px;
+}
+
+.panel{
+background:#1e1e1e;
+padding:15px;
+border-radius:10px;
+width:300px;
+}
+
+button{
+padding:6px;
+margin:5px;
+cursor:pointer;
+}
+
+.item{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin:6px;
+}
+
+.item img{
+width:40px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Jon Clicker</h1>
+
+<h2>Jon Points: <span id="points">0</span></h2>
+<h3>Per Click: <span id="perClick">1</span></h3>
+<h3>Per Second: <span id="perSecond">0</span></h3>
+
+<img id="jon" src="jon.jpg">
+
+<div class="shop">
+
+<div class="panel">
+
+<h3>Jon Upgrades</h3>
+
+<div id="upgradeShop"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>Auto Jon Machines</h3>
+
+<div id="autoShop"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let points=0
+let perClick=1
+let perSecond=0
+
+const img=document.getElementById("jon")
+
+const upgrades=[
+{name:"Energy Drink Jon",cost:10,power:1,count:0},
+{name:"Gaming Chair Jon",cost:50,power:5,count:0},
+{name:"Big Brain Jon",cost:200,power:15,count:0},
+{name:"Ultra Instinct Jon",cost:800,power:40,count:0},
+{name:"God Gamer Jon",cost:3000,power:100,count:0}
+]
+
+const autos=[
+{name:"Mini Jon Clone",cost:25,power:1,count:0},
+{name:"Jon Farm",cost:120,power:3,count:0},
+{name:"Jon Factory",cost:500,power:8,count:0},
+{name:"Jon AI",cost:2000,power:20,count:0},
+{name:"Jon Dimension Portal",cost:7000,power:60,count:0},
+{name:"Infinite Jon Reactor",cost:20000,power:150,count:0}
+]
+
+img.onclick=()=>{
+points+=perClick
+update()
+}
+
+function update(){
+
+document.getElementById("points").innerText=Math.floor(points)
+document.getElementById("perClick").innerText=perClick
+document.getElementById("perSecond").innerText=perSecond
+
+save()
+
+}
+
+function renderShops(){
+
+let uhtml=""
+let ahtml=""
+
+upgrades.forEach((u,i)=>{
+
+uhtml+=`
+<div class="item">
+<span>${u.name} (${u.count})</span>
+<button onclick="buyUpgrade(${i})">Cost ${u.cost}</button>
+</div>
+`
+
+})
+
+autos.forEach((a,i)=>{
+
+ahtml+=`
+<div class="item">
+<span>${a.name} (${a.count})</span>
+<button onclick="buyAuto(${i})">Cost ${a.cost}</button>
+</div>
+`
+
+})
+
+document.getElementById("upgradeShop").innerHTML=uhtml
+document.getElementById("autoShop").innerHTML=ahtml
+
+}
+
+function buyUpgrade(i){
+
+let u=upgrades[i]
+
+if(points>=u.cost){
+
+points-=u.cost
+
+u.count++
+
+perClick+=u.power
+
+u.cost=Math.floor(u.cost*1.35)
+
+renderShops()
+update()
+
+}
+
+}
+
+function buyAuto(i){
+
+let a=autos[i]
+
+if(points>=a.cost){
+
+points-=a.cost
+
+a.count++
+
+perSecond+=a.power
+
+a.cost=Math.floor(a.cost*1.35)
+
+renderShops()
+update()
+
+}
+
+}
+
+setInterval(()=>{
+
+points+=perSecond
+update()
+
+},1000)
+
+function save(){
+
+let data={
+points,
+perClick,
+perSecond,
+upgrades,
+autos
+}
+
+localStorage.setItem("jonClickerSave",JSON.stringify(data))
+
+}
+
+function load(){
+
+let saveData=localStorage.getItem("jonClickerSave")
+
+if(saveData){
+
+let d=JSON.parse(saveData)
+
+points=d.points
+perClick=d.perClick
+perSecond=d.perSecond
+
+for(let i=0;i<upgrades.length;i++){
+Object.assign(upgrades[i],d.upgrades[i])
+}
+
+for(let i=0;i<autos.length;i++){
+Object.assign(autos[i],d.autos[i])
+}
+
+}
+
+}
+
+load()
+renderShops()
+update()
+
+</script>
+
+</body>
+</html>
+```
