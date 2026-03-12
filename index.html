@@ -252,7 +252,7 @@ let soulUpgrades=defaultSoulUpgrades.map(s=>({...s}))
 
 function restoreItemsWithSavedState(target, defaults, saved){
   target.forEach((item,index)=>{
-    Object.assign(item, defaults[index])
+    Object.assign(item, defaults[index] || {})
     const stored=saved?.[index]
     if(stored){
       if(typeof stored.count==="number") item.count=stored.count
@@ -263,10 +263,24 @@ function restoreItemsWithSavedState(target, defaults, saved){
 
 function resetItems(target, defaults){
   target.forEach((item,index)=>{
-    Object.assign(item, defaults[index])
+    Object.assign(item, defaults[index] || {})
     item.count=0
     item.cost=item.baseCost
   })
+}
+
+function estimateRebirthCountFromSoulsData(data){
+  if(!data?.soulUpgrades) return 0
+  let spent=0
+  data.soulUpgrades.forEach((entry, index)=>{
+    const base=entry?.baseCost ?? defaultSoulUpgrades[index]?.baseCost ?? entry?.cost ?? 0
+    const count=Math.max(0, entry?.count ?? 0)
+    for(let k=0;k<count;k++){
+      spent+=Math.floor(base*Math.pow(1.7,k))
+    }
+  })
+  const totalSouls=(data?.souls ?? 0)+spent
+  return Math.floor(totalSouls/10)
 }
 function applyForrestTheme(){
 if(forrestMode) return
@@ -410,7 +424,6 @@ function rebirth(){
     rebirthCost=Math.floor(rebirthCost*1.5)
     resetItems(upgrades, defaultUpgrades)
     resetItems(autos, defaultAutos)
-    resetItems(soulUpgrades, defaultSoulUpgrades)
     renderShops()
     update()
     alert(`Rebirth complete! Souls: ${souls}`)
@@ -467,7 +480,7 @@ function loadSave(){
     perSecond=d.perSecond
     souls=d.souls
     rebirthCost=d.rebirthCost||1000000
-    rebirthCount=d.rebirthCount||0
+    rebirthCount=d.rebirthCount ?? d.rebirths ?? estimateRebirthCountFromSoulsData(d)
     restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
     restoreItemsWithSavedState(autos, defaultAutos, d.autos)
     restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
@@ -497,7 +510,7 @@ function importSave(files){
       perSecond=d.perSecond
       souls=d.souls
       rebirthCost=d.rebirthCost
-      rebirthCount=d.rebirthCount||0
+      rebirthCount=d.rebirthCount ?? d.rebirths ?? estimateRebirthCountFromSoulsData(d)
       restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
       restoreItemsWithSavedState(autos, defaultAutos, d.autos)
       restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
