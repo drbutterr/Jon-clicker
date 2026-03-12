@@ -74,6 +74,7 @@ to{transform:translateY(110vh) rotate(360deg)}
 <h2>Jon Points: <span id="points">0</span></h2>
 <h3>Per Click: <span id="perClick">1</span></h3>
 <h3>Per Second: <span id="perSecond">0</span></h3>
+<h3>Click Multiplier: <span id="clickMulti">1x</span></h3>
 
 <h3>Jon Souls: <span id="souls">0</span></h3>
 <button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
@@ -156,10 +157,9 @@ document.getElementById("points").innerText=points
 document.getElementById("perClick").innerText=Math.floor(perClick)
 document.getElementById("perSecond").innerText=Math.floor(perSecond)
 document.getElementById("souls").innerText=souls
+document.getElementById("clickMulti").innerText=soulBoost.toFixed(2)+"x"
 
 document.getElementById("rebirthBtn").innerText=`Rebirth (${rebirthCost.toLocaleString()} points)`
-
-/* unlock shops */
 
 if(points>=10) document.getElementById("upgradePanel").style.display="block"
 if(points>=25) document.getElementById("autoPanel").style.display="block"
@@ -195,7 +195,7 @@ if(points>=u.cost){
 points-=u.cost
 u.count++
 perClick+=u.power
-u.cost=Math.floor(u.cost*1.35)
+u.cost=Math.floor(u.cost*1.2)
 renderShops()
 update()
 }}
@@ -222,7 +222,7 @@ if(s.type=="auto") perSecond+=s.power
 if(s.type=="boost") soulBoost+=s.power
 if(s.type=="gold") perClick*=2
 
-s.cost=Math.floor(s.cost*1.8)
+s.cost=Math.floor(s.cost*1.7)
 
 renderShops()
 update()
