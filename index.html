@@ -108,40 +108,24 @@ function buySoulUpgrade(i){let s=soulUpgrades[i];if(souls>=s.cost){souls-=s.cost
 setInterval(()=>{points+=perSecond*soulBoost;update()},1000)
 
 function rebirth(){
-if(points>=rebirthCost){souls++;soulBoost=1+souls*0.1;points=0;perClick=1;perSecond=0;rebirthCost=Math.floor(rebirthCost*1.75);
-upgrades.forEach(u=>{u.count=0;u.cost=u.baseCost});autos.forEach(a=>{a.count=0;a.cost=a.baseCost});renderShops();update();alert(`Rebirth complete! Souls: ${souls}`)}}
+if(points>=rebirthCost){
+  souls += 10; // now gives 10 souls per rebirth
+  soulBoost=1+souls*0.1;
+  points=0; perClick=1; perSecond=0;
+  rebirthCost=Math.floor(rebirthCost*1.5); // toned down scaling
+  upgrades.forEach(u=>{u.count=0; u.cost=u.baseCost});
+  autos.forEach(a=>{a.count=0; a.cost=a.baseCost});
+  renderShops(); update();
+  alert(`Rebirth complete! Souls: ${souls}`);
+}}
 
 function startRain(){for(let i=0;i<25;i++){let j=document.createElement("img");j.src="jon.jpg";j.className="rainJon";j.style.left=Math.random()*100+"vw";j.style.animationDuration=(3+Math.random()*3)+"s";document.body.appendChild(j);setTimeout(()=>{j.remove()},6000)}}
 
-// SAVE SYSTEM WITH FILE EXPORT/IMPORT
 function saveData(){return JSON.stringify({points,perClick,perSecond,souls,soulBoost,rebirthCost,upgrades,autos,soulUpgrades})}
-function exportSave(){
-const blob=new Blob([saveData()],{type:"application/json"});
-const url=URL.createObjectURL(blob);
-const a=document.createElement('a');a.href=url;a.download="jonClickerSave.json";a.click();URL.revokeObjectURL(url);
-}
-function importSave(files){
-if(files.length===0) return;
-const reader=new FileReader();
-reader.onload=e=>{
-try{
-const d=JSON.parse(e.target.result);
-points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;
-upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));
-autos.forEach((a,i)=>Object.assign(a,d.autos[i]));
-soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));
-update();renderShops();
-alert('Save Imported Successfully!');
-}catch(err){alert('Invalid save file');}
-};
-reader.readAsText(files[0]);
-}
+function exportSave(){const blob=new Blob([saveData()],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download="jonClickerSave.json";a.click();URL.revokeObjectURL(url);}
+function importSave(files){if(files.length===0) return;const reader=new FileReader();reader.onload=e=>{try{const d=JSON.parse(e.target.result);points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));autos.forEach((a,i)=>Object.assign(a,d.autos[i]));soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));update();renderShops();alert('Save Imported Successfully!');}catch(err){alert('Invalid save file');}};reader.readAsText(files[0]);}
 
-loadSave();
-function loadSave(){
-const saved=localStorage.getItem('jonClickerSave');
-if(saved){const d=JSON.parse(saved);points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));autos.forEach((a,i)=>Object.assign(a,d.autos[i]));soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));update();renderShops();}
-}
+loadSave();function loadSave(){const saved=localStorage.getItem('jonClickerSave');if(saved){const d=JSON.parse(saved);points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));autos.forEach((a,i)=>Object.assign(a,d.autos[i]));soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));update();renderShops();}}
 
 </script>
 
