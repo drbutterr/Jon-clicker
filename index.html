@@ -1,115 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Jon Clicker Deluxe</title>
-
-<style>
-body{
-font-family:Arial;
-background:url("jon2.jpg");
-background-size:cover;
-background-attachment:fixed;
-color:white;
-text-align:center;
-overflow-x:hidden
-}
-
-#jon{
-width:350px;
-cursor:pointer;
-transition:transform .1s
-}
-
-#jon:active{
-transform:scale(.9)
-}
-
-.shop{
-display:flex;
-justify-content:center;
-gap:50px;
-margin-top:20px;
-flex-wrap:wrap
-}
-
-.panel{
-background:#1e1e1ee0;
-padding:15px;
-border-radius:10px;
-width:300px
-}
-
-button{
-padding:6px;
-margin:5px;
-cursor:pointer
-}
-
-.item{
-display:flex;
-align-items:center;
-justify-content:space-between;
-margin:6px;
-font-size:14px
-}
-
-.rainJon{
-position:fixed;
-top:-60px;
-width:50px;
-pointer-events:none;
-animation:fall linear forwards
-}
-
-@keyframes fall{
-to{transform:translateY(110vh) rotate(360deg)}
-}
-</style>
-</head>
-
-<body>
-
-<h1>Jon Clicker Deluxe</h1>
-
-<h2>Jon Points: <span id="points">0</span></h2>
-<h3>Per Click: <span id="perClick">1</span></h3>
-<h3>Per Second: <span id="perSecond">0</span></h3>
-<h3>Click Multiplier: <span id="clickMulti">1x</span></h3>
-
-<h3>Jon Souls: <span id="souls">0</span></h3>
-<button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
-<button onclick="startRain()">Summon Jon Rain</button>
-<button onclick="exportSave()">Download Save</button>
-<input type="file" id="importFile" style="display:none" onchange="importSave(this.files)">
-<button onclick="document.getElementById('importFile').click()">Upload Save</button>
-
-<br><br>
-
-<img id="jon" src="jon.jpg">
-
-<div class="shop">
-
-<div class="panel" id="upgradePanel" style="display:none">
-<h3>Jon Upgrades</h3>
-<div id="upgradeShop"></div>
-</div>
-
-<div class="panel" id="autoPanel" style="display:none">
-<h3>Auto Jon Machines</h3>
-<div id="autoShop"></div>
-</div>
-
-<div class="panel" id="soulPanel" style="display:none">
-<h3>Soul Upgrades (Permanent)</h3>
-<div id="soulShop"></div>
-</div>
-
-</div>
-
 <script>
 
 let points=0, perClick=1, perSecond=0, souls=0, soulBoost=1, rebirthCost=1000000
 const img=document.getElementById("jon")
+
+function formatNumber(num){
+
+if(num >= 1e12) return (num/1e12).toFixed(2)+"T"
+if(num >= 1e9) return (num/1e9).toFixed(2)+"B"
+if(num >= 1e6) return (num/1e6).toFixed(2)+"M"
+if(num >= 1e3) return (num/1e3).toFixed(2)+"K"
+
+return Math.floor(num)
+}
 
 const upgrades=[
 {name:"Energy Drink Jon",cost:10,baseCost:10,power:1,count:0},
@@ -153,13 +55,13 @@ function update(){
 
 points=Math.floor(points)
 
-document.getElementById("points").innerText=points
-document.getElementById("perClick").innerText=Math.floor(perClick)
-document.getElementById("perSecond").innerText=Math.floor(perSecond)
+document.getElementById("points").innerText=formatNumber(points)
+document.getElementById("perClick").innerText=formatNumber(perClick)
+document.getElementById("perSecond").innerText=formatNumber(perSecond)
 document.getElementById("souls").innerText=souls
 document.getElementById("clickMulti").innerText=soulBoost.toFixed(2)+"x"
 
-document.getElementById("rebirthBtn").innerText=`Rebirth (${rebirthCost.toLocaleString()} points)`
+document.getElementById("rebirthBtn").innerText=`Rebirth (${formatNumber(rebirthCost)} points)`
 
 if(points>=10) document.getElementById("upgradePanel").style.display="block"
 if(points>=25) document.getElementById("autoPanel").style.display="block"
@@ -173,11 +75,11 @@ function renderShops(){
 let uhtml="",ahtml="",shtml=""
 
 upgrades.forEach((u,i)=>{
-uhtml+=`<div class="item"><span>${u.name} (${u.count})</span><button onclick="buyUpgrade(${i})">${u.cost}</button></div>`
+uhtml+=`<div class="item"><span>${u.name} (${u.count})</span><button onclick="buyUpgrade(${i})">${formatNumber(u.cost)}</button></div>`
 })
 
 autos.forEach((a,i)=>{
-ahtml+=`<div class="item"><span>${a.name} (${a.count})</span><button onclick="buyAuto(${i})">${a.cost}</button></div>`
+ahtml+=`<div class="item"><span>${a.name} (${a.count})</span><button onclick="buyAuto(${i})">${formatNumber(a.cost)}</button></div>`
 })
 
 soulUpgrades.forEach((s,i)=>{
@@ -238,7 +140,16 @@ function rebirth(){
 if(points>=rebirthCost){
 
 souls+=10
-soulBoost=1+souls*0.1
+
+soulBoost=1
+
+soulUpgrades.forEach(s=>{
+if(s.type=="boost"){
+soulBoost+=s.count*s.power
+}
+})
+
+soulBoost+=souls*0.1
 
 points=0
 perClick=1
@@ -359,6 +270,3 @@ renderShops()
 update()
 
 </script>
-
-</body>
-</html>
