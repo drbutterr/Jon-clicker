@@ -25,39 +25,33 @@ button{padding:6px;margin:5px;cursor:pointer}
 <h3>Per Second: <span id="perSecond">0</span></h3>
 
 <h3>Jon Souls: <span id="souls">0</span></h3>
-<button onclick="rebirth()">Rebirth (1,000,000 points)</button>
+<button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
 <button onclick="startRain()">Summon Jon Rain</button>
+<button onclick="exportSave()">Download Save</button>
+<input type="file" id="importFile" style="display:none" onchange="importSave(this.files)">
+<button onclick="document.getElementById('importFile').click()">Upload Save</button>
 
 <br><br>
 
 <img id="jon" src="jon.jpg">
 
 <div class="shop">
-
 <div class="panel">
 <h3>Jon Upgrades</h3>
 <div id="upgradeShop"></div>
 </div>
-
 <div class="panel">
 <h3>Auto Jon Machines</h3>
 <div id="autoShop"></div>
 </div>
-
 <div class="panel">
 <h3>Soul Upgrades (Permanent)</h3>
 <div id="soulShop"></div>
 </div>
-
 </div>
 
 <script>
-let points=0
-let perClick=1
-let perSecond=0
-let souls=0
-let soulBoost=1
-
+let points=0, perClick=1, perSecond=0, souls=0, soulBoost=1, rebirthCost=1000000
 const img=document.getElementById("jon")
 
 const upgrades=[
@@ -67,7 +61,6 @@ const upgrades=[
 {name:"Ultra Instinct Jon",cost:800,baseCost:800,power:40,count:0},
 {name:"God Gamer Jon",cost:3000,baseCost:3000,power:100,count:0}
 ]
-
 const autos=[
 {name:"Mini Jon Clone",cost:25,baseCost:25,power:1,count:0},
 {name:"Jon Farm",cost:120,baseCost:120,power:3,count:0},
@@ -75,7 +68,6 @@ const autos=[
 {name:"Jon AI",cost:2000,baseCost:2000,power:20,count:0},
 {name:"Jon Dimension Portal",cost:7000,baseCost:7000,power:60,count:0}
 ]
-
 const soulUpgrades=[
 {name:"Stronger Clicks",cost:5,power:1,count:0,type:"click"},
 {name:"Faster Autos",cost:5,power:1,count:0,type:"auto"},
@@ -90,89 +82,67 @@ function update(){
 points=Math.floor(points)
 document.getElementById("points").innerText=points
 perClick=Math.floor(perClick)
-perSecond=Math.floor(perSecond)
 document.getElementById("perClick").innerText=perClick
-
+perSecond=Math.floor(perSecond)
 document.getElementById("perSecond").innerText=perSecond
 
 document.getElementById("souls").innerText=souls
-save()
+
+document.getElementById("rebirthBtn").innerText=`Rebirth (${rebirthCost.toLocaleString()} points)`
 }
 
 function renderShops(){
 let uhtml="",ahtml="",shtml=""
-
-upgrades.forEach((u,i)=>{
-uhtml+=`<div class="item"><span>${u.name} (${u.count})</span><button onclick="buyUpgrade(${i})">${u.cost}</button></div>`})
-
-autos.forEach((a,i)=>{
-ahtml+=`<div class="item"><span>${a.name} (${a.count})</span><button onclick="buyAuto(${i})">${a.cost}</button></div>`})
-
-soulUpgrades.forEach((s,i)=>{
-shtml+=`<div class="item"><span>${s.name} (${s.count})</span><button onclick="buySoulUpgrade(${i})">${s.cost} Souls</button></div>`})
-
+upgrades.forEach((u,i)=>{uhtml+=`<div class="item"><span>${u.name} (${u.count})</span><button onclick="buyUpgrade(${i})">${u.cost}</button></div>`})
+autos.forEach((a,i)=>{ahtml+=`<div class="item"><span>${a.name} (${a.count})</span><button onclick="buyAuto(${i})">${a.cost}</button></div>`})
+soulUpgrades.forEach((s,i)=>{shtml+=`<div class="item"><span>${s.name} (${s.count})</span><button onclick="buySoulUpgrade(${i})">${s.cost} Souls</button></div>`})
 document.getElementById("upgradeShop").innerHTML=uhtml
-
 document.getElementById("autoShop").innerHTML=ahtml
-
 document.getElementById("soulShop").innerHTML=shtml
 }
 
-function buyUpgrade(i){
-let u=upgrades[i]
-if(points>=u.cost){points-=u.cost;u.count++;perClick+=u.power;u.cost=Math.floor(u.cost*1.35);renderShops();update()}}
-
-function buyAuto(i){
-let a=autos[i]
-if(points>=a.cost){points-=a.cost;a.count++;perSecond+=a.power;a.cost=Math.floor(a.cost*1.35);renderShops();update()}}
-
-function buySoulUpgrade(i){
-let s=soulUpgrades[i]
-if(souls>=s.cost){
-souls-=s.cost
-s.count++
-if(s.type=="click") perClick+=s.power
-if(s.type=="auto") perSecond+=s.power
-if(s.type=="boost") soulBoost+=s.power
-if(s.type=="gold") perClick*=2
-s.cost=Math.floor(s.cost*1.8)
-renderShops();update()
-}}
+function buyUpgrade(i){let u=upgrades[i];if(points>=u.cost){points-=u.cost;u.count++;perClick+=u.power;u.cost=Math.floor(u.cost*1.35);renderShops();update()}}
+function buyAuto(i){let a=autos[i];if(points>=a.cost){points-=a.cost;a.count++;perSecond+=a.power;a.cost=Math.floor(a.cost*1.35);renderShops();update()}}
+function buySoulUpgrade(i){let s=soulUpgrades[i];if(souls>=s.cost){souls-=s.cost;s.count++;if(s.type=="click") perClick+=s.power;if(s.type=="auto") perSecond+=s.power;if(s.type=="boost") soulBoost+=s.power;if(s.type=="gold") perClick*=2;s.cost=Math.floor(s.cost*1.8);renderShops();update()}}
 
 setInterval(()=>{points+=perSecond*soulBoost;update()},1000)
 
 function rebirth(){
-if(points>=1000000){
-souls++
-soulBoost=1+souls*0.1
-points=0;perClick=1;perSecond=0
-upgrades.forEach(u=>{u.count=0;u.cost=u.baseCost})
-autos.forEach(a=>{a.count=0;a.cost=a.baseCost})
-renderShops();update();alert("Rebirth complete!")
-}}
+if(points>=rebirthCost){souls++;soulBoost=1+souls*0.1;points=0;perClick=1;perSecond=0;rebirthCost=Math.floor(rebirthCost*1.75);
+upgrades.forEach(u=>{u.count=0;u.cost=u.baseCost});autos.forEach(a=>{a.count=0;a.cost=a.baseCost});renderShops();update();alert(`Rebirth complete! Souls: ${souls}`)}}
 
-function startRain(){
-for(let i=0;i<25;i++){
-let j=document.createElement("img")
-j.src="jon.jpg";j.className="rainJon"
-j.style.left=Math.random()*100+"vw"
-j.style.animationDuration=(3+Math.random()*3)+"s"
-document.body.appendChild(j)
-setTimeout(()=>{j.remove()},6000)}
+function startRain(){for(let i=0;i<25;i++){let j=document.createElement("img");j.src="jon.jpg";j.className="rainJon";j.style.left=Math.random()*100+"vw";j.style.animationDuration=(3+Math.random()*3)+"s";document.body.appendChild(j);setTimeout(()=>{j.remove()},6000)}}
+
+// SAVE SYSTEM WITH FILE EXPORT/IMPORT
+function saveData(){return JSON.stringify({points,perClick,perSecond,souls,soulBoost,rebirthCost,upgrades,autos,soulUpgrades})}
+function exportSave(){
+const blob=new Blob([saveData()],{type:"application/json"});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download="jonClickerSave.json";a.click();URL.revokeObjectURL(url);
+}
+function importSave(files){
+if(files.length===0) return;
+const reader=new FileReader();
+reader.onload=e=>{
+try{
+const d=JSON.parse(e.target.result);
+points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;
+upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));
+autos.forEach((a,i)=>Object.assign(a,d.autos[i]));
+soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));
+update();renderShops();
+alert('Save Imported Successfully!');
+}catch(err){alert('Invalid save file');}
+};
+reader.readAsText(files[0]);
 }
 
-function save(){localStorage.setItem("jonClickerSave",JSON.stringify({points,perClick,perSecond,souls,soulBoost,upgrades,autos,soulUpgrades}))}
-
-function load(){
-let d=JSON.parse(localStorage.getItem("jonClickerSave"))
-if(!d) return
-points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost
-upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]))
-autos.forEach((a,i)=>Object.assign(a,d.autos[i]))
-soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]))
+loadSave();
+function loadSave(){
+const saved=localStorage.getItem('jonClickerSave');
+if(saved){const d=JSON.parse(saved);points=d.points;perClick=d.perClick;perSecond=d.perSecond;souls=d.souls;soulBoost=d.soulBoost;rebirthCost=d.rebirthCost||1000000;upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]));autos.forEach((a,i)=>Object.assign(a,d.autos[i]));soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]));update();renderShops();}
 }
 
-load();renderShops();update()
 </script>
 
 </body>
