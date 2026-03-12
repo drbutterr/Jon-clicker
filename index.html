@@ -75,6 +75,7 @@ to{transform:translateY(110vh) rotate(360deg)}
 <h3>Per Click: <span id="perClick">1</span></h3>
 <h3>Per Second: <span id="perSecond">0</span></h3>
 <h3>Click Multiplier: <span id="clickMulti">1x</span></h3>
+<h3>Auto Multiplier: <span id="autoMulti">1x</span></h3>
 
 <h3>Jon Souls: <span id="souls">0</span></h3>
 <button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
@@ -108,7 +109,8 @@ to{transform:translateY(110vh) rotate(360deg)}
   
 <script>
 
-let points=0, perClick=1, perSecond=0, souls=0, soulBoost=1, rebirthCost=1000000
+let points=0, perClick=1, perSecond=0, souls=0, rebirthCost=1000000
+let clickMultiplier=1, autoMultiplier=1
 const img=document.getElementById("jon")
 
 function formatNumber(num){
@@ -138,17 +140,19 @@ const autos=[
 ]
 
 const soulUpgrades=[
-{name:"Stronger Clicks",cost:5,power:1,count:0,type:"click"},
-{name:"Faster Autos",cost:5,power:1,count:0,type:"auto"},
-{name:"Mega Multiplier",cost:10,power:0.25,count:0,type:"boost"},
-{name:"Soul Auto-Click",cost:15,power:2,count:0,type:"auto"},
-{name:"Golden Jon",cost:25,power:1,count:0,type:"gold"}
+{name:"Kyle's Questionable Boost",cost:5,clickBonus:0.03,autoBonus:0,count:0},
+{name:"Gavin's Jazz-Hand Multiplier",cost:12,clickBonus:0.05,autoBonus:0.03,count:0},
+{name:"Silas's Nap-Time Surge",cost:22,clickBonus:0.02,autoBonus:0.1,count:0},
+{name:"Cayden's Coffee-Fueled Multiplier",cost:46,clickBonus:0.1,autoBonus:0.08,count:0},
+{name:"Jon's Legendary Self-Approval",cost:90,clickBonus:0.18,autoBonus:0.07,count:0},
+{name:"Chris's Spreadsheet Chant",cost:150,clickBonus:0.0,autoBonus:0.4,count:0},
+{name:"Zalichi's Nebula High-Five",cost:320,clickBonus:0.5,autoBonus:0.3,count:0}
 ]
 
 img.onclick=clickJon
 
 function clickJon(){
-points+=perClick*soulBoost
+points+=perClick*clickMultiplier
 update()
 }
 
@@ -159,15 +163,27 @@ clickJon()
 }
 })
 
+function rebuildMultipliers(){
+clickMultiplier=1+souls*0.02
+autoMultiplier=1+souls*0.03
+
+soulUpgrades.forEach(s=>{
+clickMultiplier+=s.count*s.clickBonus
+autoMultiplier+=s.count*s.autoBonus
+})
+}
+
 function update(){
 
+rebuildMultipliers()
 points=Math.floor(points)
 
 document.getElementById("points").innerText=formatNumber(points)
 document.getElementById("perClick").innerText=formatNumber(perClick)
 document.getElementById("perSecond").innerText=formatNumber(perSecond)
 document.getElementById("souls").innerText=souls
-document.getElementById("clickMulti").innerText=soulBoost.toFixed(2)+"x"
+document.getElementById("clickMulti").innerText=clickMultiplier.toFixed(2)+"x"
+document.getElementById("autoMulti").innerText=autoMultiplier.toFixed(2)+"x"
 
 document.getElementById("rebirthBtn").innerText=`Rebirth (${formatNumber(rebirthCost)} points)`
 
@@ -227,10 +243,7 @@ if(souls>=s.cost){
 souls-=s.cost
 s.count++
 
-if(s.type=="click") perClick+=s.power
-if(s.type=="auto") perSecond+=s.power
-if(s.type=="boost") soulBoost+=s.power
-if(s.type=="gold") perClick*=2
+rebuildMultipliers()
 
 s.cost=Math.floor(s.cost*1.7)
 
@@ -239,7 +252,7 @@ update()
 }}
 
 setInterval(()=>{
-points+=perSecond*soulBoost
+points+=perSecond*autoMultiplier
 update()
 },1000)
 
@@ -249,17 +262,6 @@ if(points>=rebirthCost){
 
 souls+=10
 
-soulBoost=1
-
-soulUpgrades.forEach(s=>{
-if(s.type=="boost"){
-soulBoost+=s.count*s.power
-}
-})
-
-soulBoost+=souls*0.1
-
-points=0
 perClick=1
 perSecond=0
 
@@ -289,12 +291,13 @@ j.style.animationDuration=(3+Math.random()*3)+"s"
 document.body.appendChild(j)
 
 setTimeout(()=>{j.remove()},6000)
-}}
+}
+}
 
 function saveGame(){
 
 localStorage.setItem("jonClickerSave",JSON.stringify({
-points,perClick,perSecond,souls,soulBoost,rebirthCost,upgrades,autos,soulUpgrades
+points,perClick,perSecond,souls,rebirthCost,upgrades,autos,soulUpgrades
 }))
 }
 
@@ -310,7 +313,6 @@ points=d.points
 perClick=d.perClick
 perSecond=d.perSecond
 souls=d.souls
-soulBoost=d.soulBoost
 rebirthCost=d.rebirthCost||1000000
 
 upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]))
@@ -325,7 +327,7 @@ update()
 function exportSave(){
 
 const blob=new Blob([JSON.stringify({
-points,perClick,perSecond,souls,soulBoost,rebirthCost,upgrades,autos,soulUpgrades
+points,perClick,perSecond,souls,rebirthCost,upgrades,autos,soulUpgrades
 })],{type:"application/json"})
 
 const url=URL.createObjectURL(blob)
@@ -354,7 +356,6 @@ points=d.points
 perClick=d.perClick
 perSecond=d.perSecond
 souls=d.souls
-soulBoost=d.soulBoost
 rebirthCost=d.rebirthCost
 
 upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]))
