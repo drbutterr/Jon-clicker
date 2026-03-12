@@ -4,381 +4,515 @@
 <title>Jon Clicker Deluxe</title>
 
 <style>
+:root{
+--panel:rgba(20,20,20,0.85);
+}
 body{
-font-family:Arial;
+font-family:"Segoe UI",Arial,sans-serif;
 background:url("jon2.jpg");
 background-size:cover;
 background-attachment:fixed;
 color:white;
 text-align:center;
-overflow-x:hidden
+overflow-x:hidden;
 }
-
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:linear-gradient(180deg,rgba(0,0,0,0.55),rgba(0,0,0,0.85));
+pointer-events:none;
+}
 #jon{
-width:350px;
+width:360px;
 cursor:pointer;
-transition:transform .1s
+transition:transform .08s ease,filter .35s ease;
+filter:drop-shadow(0 0 18px rgba(255,255,255,0.65));
+animation:heroFloat 6s ease-in-out infinite;
 }
-
-#jon:active{
-transform:scale(.9)
+#jon.pressed{
+  transform:translateY(4px) scale(.92);
+  filter:drop-shadow(0 0 6px rgba(255,255,255,0.25));
 }
-
 .shop{
 display:flex;
 justify-content:center;
-gap:50px;
-margin-top:20px;
-flex-wrap:wrap
+gap:40px;
+margin-top:25px;
+flex-wrap:wrap;
+padding-bottom:20px;
 }
-
 .panel{
-background:#1e1e1ee0;
-padding:15px;
-border-radius:10px;
-width:300px
+background:var(--panel);
+padding:20px;
+border-radius:14px;
+width:320px;
+border:1px solid rgba(255,255,255,0.12);
+box-shadow:0 20px 60px rgba(0,0,0,0.8);
+backdrop-filter:blur(12px);
+transition:transform .3s ease,box-shadow .3s ease;
 }
-
+.panel:hover{
+transform:translateY(-6px);
+box-shadow:0 30px 60px rgba(0,0,0,0.9),0 0 25px rgba(255,255,255,0.15);
+}
 button{
-padding:6px;
-margin:5px;
-cursor:pointer
+padding:10px 14px;
+margin:6px;
+border:none;
+border-radius:8px;
+background:linear-gradient(135deg,rgba(255,255,255,0.18),rgba(255,255,255,0.05));
+color:white;
+letter-spacing:0.5px;
+cursor:pointer;
+transition:transform .2s ease,box-shadow .2s ease;
 }
-
+button:hover{
+transform:translateY(-3px);
+box-shadow:0 12px 24px rgba(0,0,0,0.35),0 0 30px rgba(255,255,255,0.2);
+}
 .item{
 display:flex;
 align-items:center;
 justify-content:space-between;
-margin:6px;
-font-size:14px
+margin:8px 0;
+font-size:15px;
 }
 
+.item-text{
+display:flex;
+flex-direction:column;
+align-items:flex-start;
+gap:2px;
+max-width:calc(100% - 110px);
+line-height:1.2;
+}
+
+.item .desc{
+font-size:12px;
+color:rgba(255,255,255,0.75);
+opacity:0;
+max-height:0;
+overflow:hidden;
+transition:opacity .3s,max-height .3s;
+}
+
+.item:hover .desc{
+opacity:1;
+max-height:48px;
+}
 .rainJon{
 position:fixed;
 top:-60px;
-width:50px;
+width:45px;
 pointer-events:none;
-animation:fall linear forwards
+animation:fall linear forwards;
+filter:drop-shadow(0 0 8px rgba(0,0,0,0.6));
 }
-
+.floatJon{
+position:fixed;
+width:55px;
+z-index:2;
+animation:floatUp 1.4s ease-out forwards;
+filter:drop-shadow(0 0 20px rgba(255,255,255,0.55));
+pointer-events:auto;
+cursor:pointer;
+}
 @keyframes fall{
 to{transform:translateY(110vh) rotate(360deg)}
 }
+@keyframes floatUp{
+0%{opacity:0;transform:translateY(15px) scale(0.9);}
+40%{opacity:1;}
+100%{opacity:0;transform:translateY(-40px) scale(1.05);}
+}
+@keyframes heroFloat{
+0%,100%{transform:translateY(0);}
+50%{transform:translateY(-6px);}
+}
+h1,h2,h3{
+text-shadow:0 0 24px rgba(0,0,0,0.6);
+letter-spacing:1px;
+transition:letter-spacing .4s ease;
+}
+h1:hover{
+letter-spacing:2px;
+}
 </style>
 </head>
-
 <body>
-
-<h1>Jon Clicker Deluxe</h1>
-
-<h2>Jon Points: <span id="points">0</span></h2>
+<h1 id="titleLabel">Jon Clicker Deluxe</h1>
+<h2><span id="pointsLabel">Jon Points</span>: <span id="points">0</span></h2>
 <h3>Per Click: <span id="perClick">1</span></h3>
 <h3>Per Second: <span id="perSecond">0</span></h3>
 <h3>Click Multiplier: <span id="clickMulti">1x</span></h3>
 <h3>Auto Multiplier: <span id="autoMulti">1x</span></h3>
-
-<h3>Jon Souls: <span id="souls">0</span></h3>
+<h3>Rebirths: <span id="rebirthCount">0</span></h3>
+<h3><span id="soulsLabel">Jon Souls</span>: <span id="souls">0</span></h3>
 <button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
-<button onclick="startRain()">Summon Jon Rain</button>
+<button id="rainBtn" onclick="startRain()">Summon Jon Rain</button>
 <button onclick="exportSave()">Download Save</button>
 <input type="file" id="importFile" style="display:none" onchange="importSave(this.files)">
 <button onclick="document.getElementById('importFile').click()">Upload Save</button>
-
 <br><br>
-
 <img id="jon" src="jon.jpg">
-
 <div class="shop">
-
 <div class="panel" id="upgradePanel" style="display:none">
-<h3>Jon Upgrades</h3>
+<h3 id="upgradeHeader">Jon Upgrades</h3>
 <div id="upgradeShop"></div>
 </div>
-
 <div class="panel" id="autoPanel" style="display:none">
-<h3>Auto Jon Machines</h3>
+<h3 id="autoHeader">Auto Jon Machines</h3>
 <div id="autoShop"></div>
 </div>
-
 <div class="panel" id="soulPanel" style="display:none">
 <h3>Soul Upgrades (Permanent)</h3>
 <div id="soulShop"></div>
 </div>
-
 </div>
-  
 <script>
-
 let points=0, perClick=1, perSecond=0, souls=0, rebirthCost=1000000
 let clickMultiplier=1, autoMultiplier=1
+let rebirthCount=0
+let heroImage="jon.jpg"
+const forrestHeroImage="IMG_0228-removebg-preview.png"
+const forrestBackground="IMG_0197.jpg"
+let forrestMode=false
+const secretWord="forrest"
+let secretBuffer=""
+const jonKeys={j:false,o:false,n:false}
+const themeTextTargets=[
+  {id:"titleLabel", jon:"Jon Clicker Deluxe", forrest:"Forrest Clicker Deluxe"},
+  {id:"pointsLabel", jon:"Jon Points", forrest:"Forrest Points"},
+  {id:"soulsLabel", jon:"Jon Souls", forrest:"Forrest Souls"},
+  {id:"upgradeHeader", jon:"Jon Upgrades", forrest:"Forrest Upgrades"},
+  {id:"autoHeader", jon:"Auto Jon Machines", forrest:"Auto Forrest Machines"},
+  {id:"rainBtn", jon:"Summon Jon Rain", forrest:"Summon Forrest Rain"}
+]
+const jonRegex=/Jon/g
 const img=document.getElementById("jon")
+img.src=heroImage
+function pressHero(){
+  img.classList.add("pressed")
+}
+function releaseHero(){
+  img.classList.remove("pressed")
+}
+img.addEventListener("mousedown",pressHero)
+img.addEventListener("pointerdown",pressHero)
+img.addEventListener("touchstart",pressHero)
+img.addEventListener("mouseup",releaseHero)
+img.addEventListener("pointerup",releaseHero)
+img.addEventListener("touchend",releaseHero)
+img.addEventListener("mouseleave",releaseHero)
+img.addEventListener("touchcancel",releaseHero)
 
+function themedText(text){
+  return forrestMode ? text.replace(jonRegex,"Forrest") : text
+}
+
+function formatDelta(value){
+  const decimals = value % 1 === 0 ? 0 : 2
+  return Number(value.toFixed(decimals)).toString()
+}
+
+function upgradeTooltip(u){
+  return `${themedText(u.description)} +${formatDelta(u.power)} per click.`
+}
+
+function autoTooltip(a){
+  return `${themedText(a.description)} +${formatDelta(a.power)} per second.`
+}
+const defaultUpgrades=[
+  {name:"Energy Drink Jon",cost:10,baseCost:10,power:1,count:0,description:"Fizzed-up reflexes add one steady click."},
+  {name:"Gaming Chair Jon",cost:50,baseCost:50,power:5,count:0,description:"Ergonomic posture unlocks five extra clicks."},
+  {name:"Big Brain Jon",cost:200,baseCost:200,power:15,count:0,description:"Sharp reasoning turns each tap into fifteen points."},
+  {name:"Ultra Instinct Jon",cost:800,baseCost:800,power:40,count:0,description:"Instinctive response boosts every hit by forty."},
+  {name:"God Gamer Jon",cost:3000,baseCost:3000,power:100,count:0,description:"Cosmic focus gives you a hundred-point punch."}
+]
+let upgrades=defaultUpgrades.map(u=>({...u}))
+const defaultAutos=[
+  {name:"Mini Jon Clone",cost:25,baseCost:25,power:1,count:0,description:"Clones tap once per second while you rest."},
+  {name:"Jon Farm",cost:120,baseCost:120,power:3,count:0,description:"A farm of Jon clones produces three steady clicks."},
+  {name:"Jon Factory",cost:500,baseCost:500,power:8,count:0,description:"Full factory output pumps eight clicks per second."},
+  {name:"Jon AI",cost:2000,baseCost:2000,power:20,count:0,description:"AI-driven Jon adds twenty taps without your hand."},
+  {name:"Jon Dimension Portal",cost:7000,baseCost:7000,power:60,count:0,description:"Portals beam sixty clicks from another realm."}
+]
+let autos=defaultAutos.map(a=>({...a}))
+const defaultSoulUpgrades=[
+  {name:"Kyle's Questionable Boost",cost:5,baseCost:5,clickBonus:1.5,autoBonus:0,count:0,description:"Adds +1.50 to the click multiplier."},
+  {name:"Gavin's Jazz-Hand Multiplier",cost:12,baseCost:12,clickBonus:2.5,autoBonus:1.0,count:0,description:"Adds +2.50 to the click multiplier and +1.00 to the auto multiplier."},
+  {name:"Silas's Nap-Time Surge",cost:22,baseCost:22,clickBonus:1.8,autoBonus:2.5,count:0,description:"Adds +1.80 to the click multiplier and +2.50 to the auto multiplier."},
+  {name:"Cayden's Coffee-Fueled Multiplier",cost:46,baseCost:46,clickBonus:3.1,autoBonus:2.2,count:0,description:"Adds +3.10 to the click multiplier and +2.20 to the auto multiplier."},
+  {name:"Jon's Legendary Self-Approval",cost:90,baseCost:90,clickBonus:4.0,autoBonus:3.3,count:0,description:"Adds +4.00 to the click multiplier and +3.30 to the auto multiplier."},
+  {name:"Chris's Spreadsheet Chant",cost:150,baseCost:150,clickBonus:0.0,autoBonus:5.0,count:0,description:"Adds +5.00 to the auto multiplier while leaving clicks unchanged."},
+  {name:"Zalichi's Nebula High-Five",cost:320,baseCost:320,clickBonus:6.5,autoBonus:4.2,count:0,description:"Adds +6.50 to the click multiplier and +4.20 to the auto multiplier."}
+]
+let soulUpgrades=defaultSoulUpgrades.map(s=>({...s}))
+
+function restoreItemsWithSavedState(target, defaults, saved){
+  target.forEach((item,index)=>{
+    Object.assign(item, defaults[index])
+    const stored=saved?.[index]
+    if(stored){
+      if(typeof stored.count==="number") item.count=stored.count
+      if(typeof stored.cost==="number") item.cost=stored.cost
+    }
+  })
+}
+
+function resetItems(target, defaults){
+  target.forEach((item,index)=>{
+    Object.assign(item, defaults[index])
+    item.count=0
+    item.cost=item.baseCost
+  })
+}
+function applyForrestTheme(){
+if(forrestMode) return
+forrestMode=true
+themeTextTargets.forEach(item=>{
+const el=document.getElementById(item.id)
+if(el) el.innerText=item.forrest
+})
+heroImage=forrestHeroImage
+img.src=heroImage
+document.body.style.backgroundImage=`url("${forrestBackground}")`
+renderShops()
+}
+function themedName(name){
+return forrestMode ? name.replace(jonRegex,"Forrest") : name
+}
+function handleSecretInput(key){
+if(!/^[a-z]$/.test(key)) return
+secretBuffer=(secretBuffer+key).slice(-secretWord.length)
+if(secretBuffer===secretWord){
+applyForrestTheme()
+}
+}
 function formatNumber(num){
-
 if(num >= 1e12) return (num/1e12).toFixed(2)+"T"
 if(num >= 1e9) return (num/1e9).toFixed(2)+"B"
 if(num >= 1e6) return (num/1e6).toFixed(2)+"M"
 if(num >= 1e3) return (num/1e3).toFixed(2)+"K"
-
 return Math.floor(num)
 }
-
-const upgrades=[
-{name:"Energy Drink Jon",cost:10,baseCost:10,power:1,count:0},
-{name:"Gaming Chair Jon",cost:50,baseCost:50,power:5,count:0},
-{name:"Big Brain Jon",cost:200,baseCost:200,power:15,count:0},
-{name:"Ultra Instinct Jon",cost:800,baseCost:800,power:40,count:0},
-{name:"God Gamer Jon",cost:3000,baseCost:3000,power:100,count:0}
-]
-
-const autos=[
-{name:"Mini Jon Clone",cost:25,baseCost:25,power:1,count:0},
-{name:"Jon Farm",cost:120,baseCost:120,power:3,count:0},
-{name:"Jon Factory",cost:500,baseCost:500,power:8,count:0},
-{name:"Jon AI",cost:2000,baseCost:2000,power:20,count:0},
-{name:"Jon Dimension Portal",cost:7000,baseCost:7000,power:60,count:0}
-]
-
-const soulUpgrades=[
-{name:"Kyle's Questionable Boost",cost:5,clickBonus:0.03,autoBonus:0,count:0},
-{name:"Gavin's Jazz-Hand Multiplier",cost:12,clickBonus:0.05,autoBonus:0.03,count:0},
-{name:"Silas's Nap-Time Surge",cost:22,clickBonus:0.02,autoBonus:0.1,count:0},
-{name:"Cayden's Coffee-Fueled Multiplier",cost:46,clickBonus:0.1,autoBonus:0.08,count:0},
-{name:"Jon's Legendary Self-Approval",cost:90,clickBonus:0.18,autoBonus:0.07,count:0},
-{name:"Chris's Spreadsheet Chant",cost:150,clickBonus:0.0,autoBonus:0.4,count:0},
-{name:"Zalichi's Nebula High-Five",cost:320,clickBonus:0.5,autoBonus:0.3,count:0}
-]
-
-img.onclick=clickJon
-
-function clickJon(){
-points+=perClick*clickMultiplier
-update()
-}
-
-document.addEventListener("keydown",function(e){
-if(e.code==="Space"){
-e.preventDefault()
-clickJon()
-}
-})
-
 function rebuildMultipliers(){
 clickMultiplier=1+souls*0.02
 autoMultiplier=1+souls*0.03
-
 soulUpgrades.forEach(s=>{
 clickMultiplier+=s.count*s.clickBonus
 autoMultiplier+=s.count*s.autoBonus
 })
 }
-
+img.onclick=clickJon
+document.addEventListener("keydown",function(e){
+const key=e.key.toLowerCase()
+handleSecretInput(key)
+if(key in jonKeys){
+jonKeys[key]=true
+if(jonKeys.j&&jonKeys.o&&jonKeys.n){
+e.preventDefault()
+clickJon()
+}
+}
+})
+document.addEventListener("keyup",function(e){
+const key=e.key.toLowerCase()
+if(key in jonKeys){
+jonKeys[key]=false
+}
+})
+function clickJon(){
+points+=perClick*clickMultiplier
+update()
+}
 function update(){
-
 rebuildMultipliers()
 points=Math.floor(points)
-
 document.getElementById("points").innerText=formatNumber(points)
 document.getElementById("perClick").innerText=formatNumber(perClick)
 document.getElementById("perSecond").innerText=formatNumber(perSecond)
 document.getElementById("souls").innerText=souls
+document.getElementById("rebirthCount").innerText=rebirthCount
 document.getElementById("clickMulti").innerText=clickMultiplier.toFixed(2)+"x"
 document.getElementById("autoMulti").innerText=autoMultiplier.toFixed(2)+"x"
-
 document.getElementById("rebirthBtn").innerText=`Rebirth (${formatNumber(rebirthCost)} points)`
-
 if(points>=10) document.getElementById("upgradePanel").style.display="block"
 if(points>=25) document.getElementById("autoPanel").style.display="block"
 if(souls>0) document.getElementById("soulPanel").style.display="block"
-
 saveGame()
 }
-
 function renderShops(){
-
 let uhtml="",ahtml="",shtml=""
-
 upgrades.forEach((u,i)=>{
-uhtml+=`<div class="item"><span>${u.name} (${u.count})</span><button onclick="buyUpgrade(${i})">${formatNumber(u.cost)}</button></div>`
+  const desc=upgradeTooltip(u)
+  uhtml+=`<div class="item"><div class="item-text"><span>${themedName(u.name)} (${u.count})</span><span class="desc">${desc}</span></div><button title="${desc}" onclick="buyUpgrade(${i})">${formatNumber(u.cost)}</button></div>`
 })
-
 autos.forEach((a,i)=>{
-ahtml+=`<div class="item"><span>${a.name} (${a.count})</span><button onclick="buyAuto(${i})">${formatNumber(a.cost)}</button></div>`
+  const desc=autoTooltip(a)
+  ahtml+=`<div class="item"><div class="item-text"><span>${themedName(a.name)} (${a.count})</span><span class="desc">${desc}</span></div><button title="${desc}" onclick="buyAuto(${i})">${formatNumber(a.cost)}</button></div>`
 })
-
 soulUpgrades.forEach((s,i)=>{
-shtml+=`<div class="item"><span>${s.name} (${s.count})</span><button onclick="buySoulUpgrade(${i})">${s.cost} Souls</button></div>`
+  shtml+=`<div class="item"><div class="item-text"><span>${themedName(s.name)} (${s.count})</span><span class="desc">${themedText(s.description)}</span></div><button title="${themedText(s.description)}" onclick="buySoulUpgrade(${i})">${s.cost} Souls</button></div>`
 })
-
 document.getElementById("upgradeShop").innerHTML=uhtml
 document.getElementById("autoShop").innerHTML=ahtml
 document.getElementById("soulShop").innerHTML=shtml
 }
-
 function buyUpgrade(i){
-let u=upgrades[i]
-if(points>=u.cost){
-points-=u.cost
-u.count++
-perClick+=u.power
-u.cost=Math.floor(u.cost*1.2)
-renderShops()
-update()
-}}
-
+  let u=upgrades[i]
+  if(points>=u.cost){
+    points-=u.cost
+    u.count++
+    perClick+=u.power
+    u.cost=Math.floor(u.cost*1.2)
+    spawnUpgradeJon()
+    renderShops()
+    update()
+  }
+}
 function buyAuto(i){
-let a=autos[i]
-if(points>=a.cost){
-points-=a.cost
-a.count++
-perSecond+=a.power
-a.cost=Math.floor(a.cost*1.35)
-renderShops()
-update()
-}}
-
+  let a=autos[i]
+  if(points>=a.cost){
+    points-=a.cost
+    a.count++
+    perSecond+=a.power
+    a.cost=Math.floor(a.cost*1.35)
+    spawnUpgradeJon()
+    renderShops()
+    update()
+  }
+}
 function buySoulUpgrade(i){
-let s=soulUpgrades[i]
-if(souls>=s.cost){
-souls-=s.cost
-s.count++
-
-rebuildMultipliers()
-
-s.cost=Math.floor(s.cost*1.7)
-
-renderShops()
-update()
-}}
-
+  let s=soulUpgrades[i]
+  if(souls>=s.cost){
+    souls-=s.cost
+    s.count++
+    rebuildMultipliers()
+    refreshSoulCost(s)
+    spawnUpgradeJon()
+    renderShops()
+    update()
+  }
+}
 setInterval(()=>{
 points+=perSecond*autoMultiplier
 update()
 },1000)
-
 function rebirth(){
-
-if(points>=rebirthCost){
-
-souls+=10
-
-perClick=1
-perSecond=0
-
-rebirthCost=Math.floor(rebirthCost*1.5)
-
-upgrades.forEach(u=>{u.count=0;u.cost=u.baseCost})
-autos.forEach(a=>{a.count=0;a.cost=a.baseCost})
-
-renderShops()
-update()
-
-alert(`Rebirth complete! Souls: ${souls}`)
-}}
-
+  if(points>=rebirthCost){
+    souls+=10
+    rebirthCount++
+    perClick=1
+    perSecond=0
+    points=0
+    rebirthCost=Math.floor(rebirthCost*1.5)
+    resetItems(upgrades, defaultUpgrades)
+    resetItems(autos, defaultAutos)
+    resetItems(soulUpgrades, defaultSoulUpgrades)
+    renderShops()
+    update()
+    alert(`Rebirth complete! Souls: ${souls}`)
+  }
+}
 function startRain(){
-
 for(let i=0;i<25;i++){
-
 let j=document.createElement("img")
-
-j.src="jon.jpg"
+j.src=heroImage
 j.className="rainJon"
-
 j.style.left=Math.random()*100+"vw"
 j.style.animationDuration=(3+Math.random()*3)+"s"
-
 document.body.appendChild(j)
-
 setTimeout(()=>{j.remove()},6000)
 }
 }
-
+function spawnUpgradeJon(){
+  const width=55, height=55
+  const rect=img.getBoundingClientRect()
+  const centerX=rect.width?rect.left+rect.width/2:window.innerWidth/2
+  const centerY=rect.height?rect.top+rect.height/2:window.innerHeight/2
+  const randomX=centerX+(Math.random()-0.5)*(rect.width||140)
+  const randomY=centerY+(Math.random()-0.4)*(rect.height||140)
+  const jonSprite=document.createElement("img")
+  jonSprite.src=heroImage
+  jonSprite.className="floatJon"
+  const hue=Math.floor(Math.random()*360)
+  jonSprite.style.filter=`hue-rotate(${hue}deg)`
+  jonSprite.style.opacity="0.95"
+  jonSprite.style.left=Math.min(Math.max(0,randomX),window.innerWidth-width)+"px"
+  jonSprite.style.top=Math.min(Math.max(0,randomY),window.innerHeight-height)+"px"
+  jonSprite.addEventListener("click",event=>{
+    event.stopPropagation()
+    clickJon()
+    jonSprite.remove()
+  })
+  document.body.appendChild(jonSprite)
+  setTimeout(()=>jonSprite.remove(),1500)
+}
+function refreshSoulCost(upgrade){
+upgrade.cost=Math.max(upgrade.baseCost,Math.floor(upgrade.baseCost*Math.pow(1.7,upgrade.count)))
+}
 function saveGame(){
-
 localStorage.setItem("jonClickerSave",JSON.stringify({
-points,perClick,perSecond,souls,rebirthCost,upgrades,autos,soulUpgrades
+points,perClick,perSecond,souls,rebirthCost,rebirthCount,upgrades,autos,soulUpgrades
 }))
 }
-
 function loadSave(){
-
-const saved=localStorage.getItem("jonClickerSave")
-
-if(saved){
-
-const d=JSON.parse(saved)
-
-points=d.points
-perClick=d.perClick
-perSecond=d.perSecond
-souls=d.souls
-rebirthCost=d.rebirthCost||1000000
-
-upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]))
-autos.forEach((a,i)=>Object.assign(a,d.autos[i]))
-soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]))
-
-renderShops()
-update()
+  const saved=localStorage.getItem("jonClickerSave")
+  if(saved){
+    const d=JSON.parse(saved)
+    points=d.points
+    perClick=d.perClick
+    perSecond=d.perSecond
+    souls=d.souls
+    rebirthCost=d.rebirthCost||1000000
+    rebirthCount=d.rebirthCount||0
+    restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
+    restoreItemsWithSavedState(autos, defaultAutos, d.autos)
+    restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
+    renderShops()
+    update()
+  }
 }
-}
-
 function exportSave(){
-
 const blob=new Blob([JSON.stringify({
-points,perClick,perSecond,souls,rebirthCost,upgrades,autos,soulUpgrades
+points,perClick,perSecond,souls,rebirthCost,rebirthCount,upgrades,autos,soulUpgrades
 })],{type:"application/json"})
-
 const url=URL.createObjectURL(blob)
-
 const a=document.createElement("a")
 a.href=url
 a.download="jonClickerSave.json"
 a.click()
-
 URL.revokeObjectURL(url)
 }
-
 function importSave(files){
-
-if(files.length===0) return
-
-const reader=new FileReader()
-
-reader.onload=e=>{
-
-try{
-
-const d=JSON.parse(e.target.result)
-
-points=d.points
-perClick=d.perClick
-perSecond=d.perSecond
-souls=d.souls
-rebirthCost=d.rebirthCost
-
-upgrades.forEach((u,i)=>Object.assign(u,d.upgrades[i]))
-autos.forEach((a,i)=>Object.assign(a,d.autos[i]))
-soulUpgrades.forEach((s,i)=>Object.assign(s,d.soulUpgrades[i]))
-
-renderShops()
-update()
-
-alert("Save Imported!")
-
-}catch{
-alert("Invalid save file")
-}}
-
-reader.readAsText(files[0])
+  if(files.length===0) return
+  const reader=new FileReader()
+  reader.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result)
+      points=d.points
+      perClick=d.perClick
+      perSecond=d.perSecond
+      souls=d.souls
+      rebirthCost=d.rebirthCost
+      rebirthCount=d.rebirthCount||0
+      restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
+      restoreItemsWithSavedState(autos, defaultAutos, d.autos)
+      restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
+      renderShops()
+      update()
+      alert("Save Imported!")
+    }catch{
+      alert("Invalid save file")
+    }
+  }
+  reader.readAsText(files[0])
 }
-
 loadSave()
 renderShops()
 update()
-
 </script>
-
 </body>
 </html>
