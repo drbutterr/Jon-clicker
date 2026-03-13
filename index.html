@@ -101,6 +101,110 @@ transition:opacity .3s,max-height .3s;
 opacity:1;
 max-height:48px;
 }
+.bulk-grid{
+display:flex;
+gap:6px;
+margin-top:8px;
+flex-wrap:wrap;
+}
+.bulk-grid button{
+flex:1;
+font-size:12px;
+padding:6px 10px;
+border-radius:10px;
+border:1px solid rgba(255,255,255,0.3);
+background:linear-gradient(145deg,rgba(255,255,255,0.2),rgba(0,0,0,0.3));
+box-shadow:0 10px 20px rgba(0,0,0,0.35),0 0 10px rgba(255,255,255,0.08);
+color:white;
+cursor:pointer;
+transition:transform .2s ease,box-shadow .2s ease;
+}
+.bulk-grid button:hover{
+transform:translateY(-2px);
+box-shadow:0 18px 30px rgba(0,0,0,0.45);
+}
+.stats-grid{
+margin:20px auto;
+max-width:960px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:16px;
+padding:0 10px;
+}
+.stat-card{
+background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(0,0,0,0.35));
+border:1px solid rgba(255,255,255,0.3);
+border-radius:18px;
+padding:16px 18px;
+text-align:left;
+box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 20px rgba(255,255,255,0.08);
+backdrop-filter:blur(16px);
+transition:transform .3s ease,box-shadow .3s ease;
+position:relative;
+}
+.stat-card:hover{
+transform:translateY(-6px);
+box-shadow:0 30px 70px rgba(0,0,0,0.7),0 0 25px rgba(255,255,255,0.2);
+}
+.stat-card--points{
+grid-column:span 2;
+}
+.stat-card--points .point-gain{
+right:22px;
+}
+.stat-card--points::after{
+content:"";
+position:absolute;
+inset:12px;
+border:1px solid rgba(255,255,255,0.08);
+border-radius:14px;
+pointer-events:none;
+opacity:0.7;
+}
+.point-gain{
+position:fixed;
+top:120px;
+right:2rem;
+padding:6px 10px;
+font-size:0.95rem;
+letter-spacing:.6px;
+border-radius:12px;
+border:1px solid rgba(255,255,255,0.35);
+background:rgba(0,0,0,0.55);
+opacity:0;
+transform:translateY(-6px) scale(0.95);
+transition:opacity .25s ease,transform .25s ease,color .2s ease,background .2s ease;
+pointer-events:none;
+z-index:25;
+}
+.point-gain.visible{
+opacity:1;
+transform:translateY(-24px) scale(1);
+}
+.stat-label{
+display:block;
+font-size:11px;
+letter-spacing:1.8px;
+text-transform:uppercase;
+color:rgba(255,255,255,0.75);
+margin-bottom:6px;
+}
+.stat-value{
+display:block;
+font-family:"Segoe UI Semibold",sans-serif;
+font-size:1.6rem;
+font-weight:600;
+letter-spacing:.5px;
+text-shadow:0 0 14px rgba(255,255,255,0.6);
+}
+.stat-value--large{
+font-size:2.6rem;
+}
+@media (max-width:640px){
+.stat-card--points{
+grid-column:span 1;
+}
+}
 .rainJon{
 position:fixed;
 top:-60px;
@@ -142,15 +246,43 @@ letter-spacing:2px;
 </head>
 <body>
 <h1 id="titleLabel">Jon Clicker Deluxe</h1>
-<h2><span id="pointsLabel">Jon Points</span>: <span id="points">0</span></h2>
-<h3>Per Click: <span id="perClick">1</span></h3>
-<h3>Per Second: <span id="perSecond">0</span></h3>
-<h3>Click Multiplier: <span id="clickMulti">1x</span></h3>
-<h3>Auto Multiplier: <span id="autoMulti">1x</span></h3>
-<h3>Rebirths: <span id="rebirthCount">0</span></h3>
-<h3><span id="soulsLabel">Jon Souls</span>: <span id="souls">0</span></h3>
+<div class="stats-grid">
+  <div class="stat-card stat-card--points">
+    <span class="stat-label" id="pointsLabel">Jon Points</span>
+    <span class="stat-value stat-value--large" id="points">0</span>
+    <span class="point-gain" id="pointGain" aria-hidden="true">+0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Per Click</span>
+    <span class="stat-value" id="perClick">1</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Per Second</span>
+    <span class="stat-value" id="perSecond">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Click Multiplier</span>
+    <span class="stat-value" id="clickMulti">1x</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Auto Multiplier</span>
+    <span class="stat-value" id="autoMulti">1x</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Rebirths</span>
+    <span class="stat-value" id="rebirthCount">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Superjon Rebirths</span>
+    <span class="stat-value" id="superRebirthCount">0</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label" id="soulsLabel">Jon Souls</span>
+    <span class="stat-value" id="souls">0</span>
+  </div>
+</div>
 <button id="rebirthBtn" onclick="rebirth()">Rebirth (1,000,000 points)</button>
-<button id="rainBtn" onclick="startRain()">Summon Jon Rain</button>
+<button id="rainBtn" onclick="toggleRain()">Activate Jon Rain</button>
 <button onclick="exportSave()">Download Save</button>
 <input type="file" id="importFile" style="display:none" onchange="importSave(this.files)">
 <button onclick="document.getElementById('importFile').click()">Upload Save</button>
@@ -171,9 +303,14 @@ letter-spacing:2px;
 </div>
 </div>
 <script>
-let points=0, perClick=1, perSecond=0, souls=0, rebirthCost=1000000
+const baseRebirthCost=1000000
+let superRebirthThreshold=1e9
+const superRebirthCostIncrease=1e9
+const superRebirthSoulReward=50
+let points=0, perClick=1, perSecond=0, souls=0, rebirthCost=baseRebirthCost
 let clickMultiplier=1, autoMultiplier=1
 let rebirthCount=0
+let superRebirthCount=0
 let heroImage="jon.jpg"
 const forrestHeroImage="IMG_0228-removebg-preview.png"
 const forrestBackground="IMG_0197.jpg"
@@ -186,12 +323,14 @@ const themeTextTargets=[
   {id:"pointsLabel", jon:"Jon Points", forrest:"Forrest Points"},
   {id:"soulsLabel", jon:"Jon Souls", forrest:"Forrest Souls"},
   {id:"upgradeHeader", jon:"Jon Upgrades", forrest:"Forrest Upgrades"},
-  {id:"autoHeader", jon:"Auto Jon Machines", forrest:"Auto Forrest Machines"},
-  {id:"rainBtn", jon:"Summon Jon Rain", forrest:"Summon Forrest Rain"}
+  {id:"autoHeader", jon:"Auto Jon Machines", forrest:"Auto Forrest Machines"}
 ]
 const jonRegex=/Jon/g
 const img=document.getElementById("jon")
 img.src=heroImage
+const rainBtn=document.getElementById("rainBtn")
+let rainTimeoutId=null
+let isRainActive=false
 function pressHero(){
   img.classList.add("pressed")
 }
@@ -222,6 +361,40 @@ function upgradeTooltip(u){
 
 function autoTooltip(a){
   return `${themedText(a.description)} +${formatDelta(a.power)} per second.`
+}
+
+let pointGainTimeout=null
+const gainColors=[
+"#6df2ff",
+"#ffce6d",
+"#ff8b6b",
+"#8a9cff",
+"#70ff8a"
+]
+
+function showPointGain(amount){
+  const gainEl=document.getElementById("pointGain")
+  if(!gainEl) return
+  const color=gainColors[Math.floor(Math.random()*gainColors.length)]
+  gainEl.innerText=`+${formatInteger(amount)}`
+  gainEl.style.color=color
+  const [r,g,b]=hexToRgb(color)
+  gainEl.style.background=`rgba(${r},${g},${b},0.15)`
+  gainEl.style.borderColor=color
+  gainEl.classList.add("visible")
+  clearTimeout(pointGainTimeout)
+  pointGainTimeout=setTimeout(()=>gainEl.classList.remove("visible"),550)
+}
+
+function getRainLabel(){
+  const prefix=isRainActive?"Deactivate":"Activate"
+  const name=forrestMode?"Forrest":"Jon"
+  return `${prefix} ${name} Rain`
+}
+
+function updateRainButton(){
+  if(!rainBtn) return
+  rainBtn.innerText=getRainLabel()
 }
 const defaultUpgrades=[
   {name:"Energy Drink Jon",cost:10,baseCost:10,power:1,count:0,description:"Fizzed-up reflexes add one steady click."},
@@ -292,7 +465,8 @@ if(el) el.innerText=item.forrest
 heroImage=forrestHeroImage
 img.src=heroImage
 document.body.style.backgroundImage=`url("${forrestBackground}")`
-renderShops()
+  renderShops()
+  updateRainButton()
 }
 function themedName(name){
 return forrestMode ? name.replace(jonRegex,"Forrest") : name
@@ -310,6 +484,17 @@ if(num >= 1e9) return (num/1e9).toFixed(2)+"B"
 if(num >= 1e6) return (num/1e6).toFixed(2)+"M"
 if(num >= 1e3) return (num/1e3).toFixed(2)+"K"
 return Math.floor(num)
+}
+function formatInteger(num){
+  return Math.floor(num).toLocaleString("en-US")
+}
+function hexToRgb(hex){
+  const value=hex.replace("#","")
+  return [
+    parseInt(value.slice(0,2),16),
+    parseInt(value.slice(2,4),16),
+    parseInt(value.slice(4,6),16)
+  ]
 }
 function rebuildMultipliers(){
 clickMultiplier=1+souls*0.02
@@ -338,19 +523,32 @@ jonKeys[key]=false
 }
 })
 function clickJon(){
-points+=perClick*clickMultiplier
-update()
+  const gain=perClick*clickMultiplier
+  points+=gain
+  showPointGain(gain)
+  update()
+}
+
+function peekBulkCost(item,count,scale=1.2){
+  let cost=item.cost
+  let total=0
+  for(let i=0;i<count;i++){
+    total+=cost
+    cost=Math.floor(cost*scale)
+  }
+  return total
 }
 function update(){
-rebuildMultipliers()
-points=Math.floor(points)
-document.getElementById("points").innerText=formatNumber(points)
-document.getElementById("perClick").innerText=formatNumber(perClick)
-document.getElementById("perSecond").innerText=formatNumber(perSecond)
-document.getElementById("souls").innerText=souls
-document.getElementById("rebirthCount").innerText=rebirthCount
-document.getElementById("clickMulti").innerText=clickMultiplier.toFixed(2)+"x"
-document.getElementById("autoMulti").innerText=autoMultiplier.toFixed(2)+"x"
+  rebuildMultipliers()
+  points=Math.floor(points)
+  document.getElementById("points").innerText=formatNumber(points)
+  document.getElementById("perClick").innerText=formatNumber(perClick)
+  document.getElementById("perSecond").innerText=formatNumber(perSecond)
+  document.getElementById("souls").innerText=souls
+  document.getElementById("rebirthCount").innerText=rebirthCount
+  document.getElementById("superRebirthCount").innerText=superRebirthCount
+  document.getElementById("clickMulti").innerText=clickMultiplier.toFixed(2)+"x"
+  document.getElementById("autoMulti").innerText=autoMultiplier.toFixed(2)+"x"
 document.getElementById("rebirthBtn").innerText=`Rebirth (${formatNumber(rebirthCost)} points)`
 if(points>=10) document.getElementById("upgradePanel").style.display="block"
 if(points>=25) document.getElementById("autoPanel").style.display="block"
@@ -361,11 +559,21 @@ function renderShops(){
 let uhtml="",ahtml="",shtml=""
 upgrades.forEach((u,i)=>{
   const desc=upgradeTooltip(u)
-  uhtml+=`<div class="item"><div class="item-text"><span>${themedName(u.name)} (${u.count})</span><span class="desc">${desc}</span></div><button title="${desc}" onclick="buyUpgrade(${i})">${formatNumber(u.cost)}</button></div>`
+  const bulk5=peekBulkCost(u,5)
+  const bulk10=peekBulkCost(u,10)
+  const label1=`${formatNumber(u.cost)} (1)`
+  const label5=`${formatNumber(bulk5)} (5)`
+  const label10=`${formatNumber(bulk10)} (10)`
+  uhtml+=`<div class="item"><div class="item-text"><span>${themedName(u.name)} (${u.count})</span><span class="desc">${desc}</span></div><div class="bulk-grid"><button class="bulk-btn" title="${desc}" onclick="buyUpgrade(${i})">${label1}</button><button class="bulk-btn" title="Bulk 5 purchases" onclick="buyUpgradeBulk(${i},5)">${label5}</button><button class="bulk-btn" title="Bulk 10 purchases" onclick="buyUpgradeBulk(${i},10)">${label10}</button></div></div>`
 })
 autos.forEach((a,i)=>{
   const desc=autoTooltip(a)
-  ahtml+=`<div class="item"><div class="item-text"><span>${themedName(a.name)} (${a.count})</span><span class="desc">${desc}</span></div><button title="${desc}" onclick="buyAuto(${i})">${formatNumber(a.cost)}</button></div>`
+  const bulk5=peekBulkCost(a,5,1.35)
+  const bulk10=peekBulkCost(a,10,1.35)
+  const label1=`${formatNumber(a.cost)} (1)`
+  const label5=`${formatNumber(bulk5)} (5)`
+  const label10=`${formatNumber(bulk10)} (10)`
+  ahtml+=`<div class="item"><div class="item-text"><span>${themedName(a.name)} (${a.count})</span><span class="desc">${desc}</span></div><div class="bulk-grid"><button class="bulk-btn" title="${desc}" onclick="buyAuto(${i})">${label1}</button><button class="bulk-btn" title="Bulk 5 purchases" onclick="buyAutoBulk(${i},5)">${label5}</button><button class="bulk-btn" title="Bulk 10 purchases" onclick="buyAutoBulk(${i},10)">${label10}</button></div></div>`
 })
 soulUpgrades.forEach((s,i)=>{
   shtml+=`<div class="item"><div class="item-text"><span>${themedName(s.name)} (${s.count})</span><span class="desc">${themedText(s.description)}</span></div><button title="${themedText(s.description)}" onclick="buySoulUpgrade(${i})">${s.cost} Souls</button></div>`
@@ -386,6 +594,23 @@ function buyUpgrade(i){
     update()
   }
 }
+function buyUpgradeBulk(i,count){
+  let u=upgrades[i]
+  let bought=0
+  for(let k=0;k<count;k++){
+    if(points<u.cost) break
+    points-=u.cost
+    u.count++
+    perClick+=u.power
+    u.cost=Math.floor(u.cost*1.2)
+    bought++
+  }
+  if(bought>0){
+    spawnUpgradeJon()
+    renderShops()
+    update()
+  }
+}
 function buyAuto(i){
   let a=autos[i]
   if(points>=a.cost){
@@ -393,6 +618,23 @@ function buyAuto(i){
     a.count++
     perSecond+=a.power
     a.cost=Math.floor(a.cost*1.35)
+    spawnUpgradeJon()
+    renderShops()
+    update()
+  }
+}
+function buyAutoBulk(i,count){
+  let a=autos[i]
+  let bought=0
+  for(let k=0;k<count;k++){
+    if(points<a.cost) break
+    points-=a.cost
+    a.count++
+    perSecond+=a.power
+    a.cost=Math.floor(a.cost*1.35)
+    bought++
+  }
+  if(bought>0){
     spawnUpgradeJon()
     renderShops()
     update()
@@ -422,6 +664,9 @@ function rebirth(){
     perSecond=0
     points=0
     rebirthCost=Math.floor(rebirthCost*1.5)
+    if(rebirthCost>=superRebirthThreshold){
+      triggerSuperRebirth()
+    }
     resetItems(upgrades, defaultUpgrades)
     resetItems(autos, defaultAutos)
     renderShops()
@@ -429,16 +674,58 @@ function rebirth(){
     alert(`Rebirth complete! Souls: ${souls}`)
   }
 }
-function startRain(){
-for(let i=0;i<25;i++){
-let j=document.createElement("img")
-j.src=heroImage
-j.className="rainJon"
-j.style.left=Math.random()*100+"vw"
-j.style.animationDuration=(3+Math.random()*3)+"s"
-document.body.appendChild(j)
-setTimeout(()=>{j.remove()},6000)
+
+function triggerSuperRebirth(){
+  superRebirthCount++
+  souls+=superRebirthSoulReward
+  superRebirthThreshold+=superRebirthCostIncrease
+  rebirthCost=baseRebirthCost
+  alert("Super Jon Rebirth achieved! +50 souls and the rebirth cost was reset.")
 }
+function spawnJonRain(){
+  for(let i=0;i<12;i++){
+    let j=document.createElement("img")
+    j.src=heroImage
+    j.className="rainJon"
+    j.style.left=Math.random()*100+"vw"
+    j.style.animationDuration=(3+Math.random()*2)+"s"
+    j.style.opacity=(0.18+Math.random()*0.65).toFixed(2)
+    j.style.transform=`scale(${0.8+Math.random()*0.4})`
+    document.body.appendChild(j)
+    setTimeout(()=>{j.remove()},6500)
+  }
+}
+
+function scheduleRain(){
+  if(!isRainActive) return
+  const delay=1200+Math.random()*1300
+  rainTimeoutId=setTimeout(()=>{
+    spawnJonRain()
+    scheduleRain()
+  },delay)
+}
+
+function activateRain(){
+  if(isRainActive) return
+  isRainActive=true
+  spawnJonRain()
+  scheduleRain()
+  updateRainButton()
+}
+
+function deactivateRain(){
+  isRainActive=false
+  clearTimeout(rainTimeoutId)
+  rainTimeoutId=null
+  updateRainButton()
+}
+
+function toggleRain(){
+  if(isRainActive){
+    deactivateRain()
+  } else {
+    activateRain()
+  }
 }
 function spawnUpgradeJon(){
   const width=55, height=55
@@ -467,9 +754,9 @@ function refreshSoulCost(upgrade){
 upgrade.cost=Math.max(upgrade.baseCost,Math.floor(upgrade.baseCost*Math.pow(1.7,upgrade.count)))
 }
 function saveGame(){
-localStorage.setItem("jonClickerSave",JSON.stringify({
-points,perClick,perSecond,souls,rebirthCost,rebirthCount,upgrades,autos,soulUpgrades
-}))
+  localStorage.setItem("jonClickerSave",JSON.stringify({
+    points,perClick,perSecond,souls,rebirthCost,rebirthCount,superRebirthCount,upgrades,autos,soulUpgrades
+  }))
 }
 function loadSave(){
   const saved=localStorage.getItem("jonClickerSave")
@@ -479,8 +766,9 @@ function loadSave(){
     perClick=d.perClick
     perSecond=d.perSecond
     souls=d.souls
-    rebirthCost=d.rebirthCost||1000000
+    rebirthCost=d.rebirthCost||baseRebirthCost
     rebirthCount=d.rebirthCount ?? d.rebirths ?? estimateRebirthCountFromSoulsData(d)
+    superRebirthCount=d.superRebirthCount ?? d.superRebirths ?? 0
     restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
     restoreItemsWithSavedState(autos, defaultAutos, d.autos)
     restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
@@ -489,9 +777,9 @@ function loadSave(){
   }
 }
 function exportSave(){
-const blob=new Blob([JSON.stringify({
-points,perClick,perSecond,souls,rebirthCost,rebirthCount,upgrades,autos,soulUpgrades
-})],{type:"application/json"})
+  const blob=new Blob([JSON.stringify({
+    points,perClick,perSecond,souls,rebirthCost,rebirthCount,superRebirthCount,upgrades,autos,soulUpgrades
+  })],{type:"application/json"})
 const url=URL.createObjectURL(blob)
 const a=document.createElement("a")
 a.href=url
@@ -511,6 +799,7 @@ function importSave(files){
       souls=d.souls
       rebirthCost=d.rebirthCost
       rebirthCount=d.rebirthCount ?? d.rebirths ?? estimateRebirthCountFromSoulsData(d)
+      superRebirthCount=d.superRebirthCount ?? d.superRebirths ?? 0
       restoreItemsWithSavedState(upgrades, defaultUpgrades, d.upgrades)
       restoreItemsWithSavedState(autos, defaultAutos, d.autos)
       restoreItemsWithSavedState(soulUpgrades, defaultSoulUpgrades, d.soulUpgrades)
@@ -526,6 +815,7 @@ function importSave(files){
 loadSave()
 renderShops()
 update()
+updateRainButton()
 </script>
 </body>
 </html>
